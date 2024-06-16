@@ -28,6 +28,7 @@ bld/
 .git
 *.sln
 Binaries/
+Config/
 Content/Characters/
 Content/LevelPrototyping/
 Content/StarterContent/
