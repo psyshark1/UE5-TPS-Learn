@@ -18,6 +18,9 @@ public:
 
 	ALMADefaultCharacter();
 
+	UFUNCTION()
+	ULMAHealthComponent* GetHealthComponent() const { return HealthComponent; }
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	USpringArmComponent* SpringArmComponent;
 
@@ -27,11 +30,35 @@ public:
 	UPROPERTY()
 	UDecalComponent* CurrentCursor = nullptr;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components|Health")
+	ULMAHealthComponent* HealthComponent;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cursor")
 	UMaterialInterface* CursorMaterial = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cursor")
 	FVector CursorSize = FVector(20.0f, 40.0f, 40.0f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	UAnimMontage* DeathMontage;
+
+	//UPROPERTY()
+	UCharacterMovementComponent* CharacterMovement = GetCharacterMovement();
+
+	UPROPERTY()
+	float GainStaminaTimerRate{ 0.7f };
+
+	UPROPERTY()
+	float DrainStaminaTimerRate{ 0.1f };
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool hasSprint{false};
+
+	FTimerHandle GainStaminaTimerHandle;
+	FTimerHandle DrainStaminaTimerHandle;
+
+	void GainStamina();
+	void DrainStamina();
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -46,8 +73,17 @@ private:
 	float YRotation = -75.0f;
 	float ArmLength = 1400.0f;
 	float FOV = 55.0f;
+	const int8 MaxStamina{ 100 };
+	int8 Stamina{ 0 };
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void CamZoom(float Value);
+	void Sprint();
+	void StopSprint();
+
+	void OnDeath();
+	void OnHealthChanged(float NewHealth);
+
+	void RotationPlayerOnCursor();
 };

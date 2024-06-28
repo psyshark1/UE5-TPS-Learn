@@ -13,5 +13,9 @@ UCLASS()
 class TPS_LRN_API ALMAPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
+protected:
+	virtual void BeginSpectatingState() override;
+	//Реализация которого будет выглядеть следующим образом :
+
 };
