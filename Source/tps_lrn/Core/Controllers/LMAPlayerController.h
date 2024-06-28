@@ -16,6 +16,4 @@ class TPS_LRN_API ALMAPlayerController : public APlayerController
 
 protected:
 	virtual void BeginSpectatingState() override;
-	//Реализация которого будет выглядеть следующим образом :
-
 };
