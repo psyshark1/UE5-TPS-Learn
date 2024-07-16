@@ -6,11 +6,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Components/LMAHealthComponent.h"
+#include "Components/LMAWeaponComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TimerManager.h"
 #include "Engine/Engine.h"
 
-// Sets default values
 ALMADefaultCharacter::ALMADefaultCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -28,13 +28,13 @@ ALMADefaultCharacter::ALMADefaultCharacter()
 	CameraComponent->bUsePawnControlRotation = false;
 
 	HealthComponent = CreateDefaultSubobject<ULMAHealthComponent>("HealthComponent");
+	WeaponComponent = CreateDefaultSubobject<ULMAWeaponComponent>("Weapon");
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 }
 
-// Called when the game starts or when spawned
 void ALMADefaultCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -47,6 +47,7 @@ void ALMADefaultCharacter::BeginPlay()
 	HealthComponent->OnDeath.AddUObject(this, &ALMADefaultCharacter::OnDeath);
 	HealthComponent->OnHealthChanged.AddUObject(this, &ALMADefaultCharacter::OnHealthChanged);
 	Stamina = MaxStamina;
+	OnDeathD.AddUObject(WeaponComponent, &ULMAWeaponComponent::OnDeathOwner);
 }
 
 void ALMADefaultCharacter::MoveForward(float Value)
@@ -101,6 +102,8 @@ void ALMADefaultCharacter::OnDeath()
 	GetCharacterMovement()->DisableMovement();
 
 	SetLifeSpan(5.0f);
+
+	OnDeathD.Broadcast();
 
 	if (Controller)
 	{
@@ -177,5 +180,7 @@ void ALMADefaultCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAxis("CameraZoom", this, &ALMADefaultCharacter::CamZoom);
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ALMADefaultCharacter::Sprint);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ALMADefaultCharacter::StopSprint);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, WeaponComponent, &ULMAWeaponComponent::Fire);
+	PlayerInputComponent->BindAction("Fire", IE_Released, WeaponComponent, &ULMAWeaponComponent::StopFire);
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, WeaponComponent, &ULMAWeaponComponent::Reload);
 }
-

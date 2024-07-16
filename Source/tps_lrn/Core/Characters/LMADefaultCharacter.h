@@ -8,6 +8,9 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class ULMAWeaponComponent;
+
+DECLARE_MULTICAST_DELEGATE(OnDeathDel);
 
 UCLASS()
 class TPS_LRN_API ALMADefaultCharacter : public ACharacter
@@ -42,6 +45,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	UAnimMontage* DeathMontage;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+	ULMAWeaponComponent* WeaponComponent;
+
 	//UPROPERTY()
 	UCharacterMovementComponent* CharacterMovement = GetCharacterMovement();
 
@@ -59,6 +65,8 @@ public:
 
 	void GainStamina();
 	void DrainStamina();
+
+	OnDeathDel OnDeathD;
 
 	virtual void Tick(float DeltaTime) override;
 
