@@ -46,8 +46,11 @@ void ALMADefaultCharacter::BeginPlay()
 	OnHealthChanged(HealthComponent->GetHealth());
 	HealthComponent->OnDeath.AddUObject(this, &ALMADefaultCharacter::OnDeath);
 	HealthComponent->OnHealthChanged.AddUObject(this, &ALMADefaultCharacter::OnHealthChanged);
-	Stamina = MaxStamina;
+	HealthComponent->NoStamina.AddUObject(this, &ALMADefaultCharacter::SetTired);
+	
 	OnDeathD.AddUObject(WeaponComponent, &ULMAWeaponComponent::OnDeathOwner);
+	HasSprint.AddUObject(HealthComponent, &ULMAHealthComponent::Sprinted);
+	HasSprint.AddUObject(WeaponComponent, &ULMAWeaponComponent::isSprinted);
 }
 
 void ALMADefaultCharacter::MoveForward(float Value)
@@ -74,12 +77,11 @@ void ALMADefaultCharacter::Sprint()
 	{
 		if (!CharacterMovement->IsFalling())
 		{
-			if (Stamina > 0)
+			if (HealthComponent->GetStamina() > 0)
 			{
 				hasSprint = true;
 				CharacterMovement->MaxWalkSpeed = 600.0f;
-				if (GetWorldTimerManager().IsTimerActive(GainStaminaTimerHandle)) { GetWorldTimerManager().ClearTimer(GainStaminaTimerHandle); }
-				GetWorldTimerManager().SetTimer(DrainStaminaTimerHandle, this, &ALMADefaultCharacter::DrainStamina, DrainStaminaTimerRate, true);
+				HasSprint.Broadcast(hasSprint);
 			}
 		}
 	}
@@ -87,10 +89,14 @@ void ALMADefaultCharacter::Sprint()
 
 void ALMADefaultCharacter::StopSprint()
 {
-	hasSprint = false;
-	CharacterMovement->MaxWalkSpeed = 300.0f;
-	GetWorldTimerManager().ClearTimer(DrainStaminaTimerHandle);
-	GetWorldTimerManager().SetTimer(GainStaminaTimerHandle, this, &ALMADefaultCharacter::GainStamina, GainStaminaTimerRate, true);
+	SetTired(false, 300.0f);
+	HasSprint.Broadcast(hasSprint);
+}
+
+void ALMADefaultCharacter::SetTired(bool hSprint, float tiredSpeed)
+{
+	hasSprint = hSprint;
+	CharacterMovement->MaxWalkSpeed = tiredSpeed;
 }
 
 void ALMADefaultCharacter::OnDeath()
@@ -111,40 +117,16 @@ void ALMADefaultCharacter::OnDeath()
 	}
 }
 
-void ALMADefaultCharacter::OnHealthChanged(float NewHealth)
+/*void ALMADefaultCharacter::OnHealthChanged(float NewHealth)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("Health = %f"), NewHealth));
-}
+}*/
 
 void ALMADefaultCharacter::RotationPlayerOnCursor()
 {
 }
 
-void ALMADefaultCharacter::GainStamina()
-{
-	if (Stamina < MaxStamina)
-	{
-		++Stamina;
-	}
-	else
-	{
-		GetWorldTimerManager().ClearTimer(GainStaminaTimerHandle);
-	}
-}
 
-void ALMADefaultCharacter::DrainStamina()
-{
-	if (Stamina > 0)
-	{
-		--Stamina;
-	}
-	else
-	{
-		hasSprint = false;
-		CharacterMovement->MaxWalkSpeed = 300.0f;
-	}
-	
-}
 
 // Called every frame
 void ALMADefaultCharacter::Tick(float DeltaTime)

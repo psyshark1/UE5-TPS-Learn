@@ -11,6 +11,7 @@ class UCameraComponent;
 class ULMAWeaponComponent;
 
 DECLARE_MULTICAST_DELEGATE(OnDeathDel);
+DECLARE_MULTICAST_DELEGATE_OneParam(Sprint, bool);
 
 UCLASS()
 class TPS_LRN_API ALMADefaultCharacter : public ACharacter
@@ -51,22 +52,14 @@ public:
 	//UPROPERTY()
 	UCharacterMovementComponent* CharacterMovement = GetCharacterMovement();
 
-	UPROPERTY()
-	float GainStaminaTimerRate{ 0.7f };
-
-	UPROPERTY()
-	float DrainStaminaTimerRate{ 0.1f };
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool hasSprint{false};
 
-	FTimerHandle GainStaminaTimerHandle;
-	FTimerHandle DrainStaminaTimerHandle;
-
-	void GainStamina();
-	void DrainStamina();
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnHealthChanged(float NewHealth);
 
 	OnDeathDel OnDeathD;
+	Sprint HasSprint;
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -81,17 +74,16 @@ private:
 	float YRotation = -75.0f;
 	float ArmLength = 1400.0f;
 	float FOV = 55.0f;
-	const int8 MaxStamina{ 100 };
-	int8 Stamina{ 0 };
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void CamZoom(float Value);
 	void Sprint();
 	void StopSprint();
+	void SetTired(bool hSprint, float tiredSpeed);
 
 	void OnDeath();
-	void OnHealthChanged(float NewHealth);
+	
 
 	void RotationPlayerOnCursor();
 };

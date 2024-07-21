@@ -32,8 +32,8 @@ Config/
 Content/AnimStarterPack/
 Content/Characters/
 Content/FPS_Weapon_Bundle/
-Content/LeaveMeAlone/Core/Characters/Animations/Sequences/
-Content/LeaveMeAlone/FPS_Weapon_Bundle/
+#Content/LeaveMeAlone/Core/Characters/Animations/Sequences/
+#Content/LeaveMeAlone/FPS_Weapon_Bundle/
 Content/LevelPrototyping/
 Content/StarterContent/
 Content/ThirdPerson/

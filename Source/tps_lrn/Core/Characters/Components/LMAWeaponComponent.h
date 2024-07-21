@@ -23,6 +23,7 @@ public:
 	void StopFire();
 	void Reload();
 	void OnDeathOwner();
+	void isSprinted(bool hSprint);
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
@@ -45,8 +46,9 @@ private:
 
 	FTimerHandle FireRateHandle;
 
-	bool AnimReloading = false;
-	bool fired = false;;
+	bool AnimReloading{ false };
+	bool fired{ false };
+	bool sprinted{ false };
 	void SpawnWeapon();
 	void InitAnimNotify();
 

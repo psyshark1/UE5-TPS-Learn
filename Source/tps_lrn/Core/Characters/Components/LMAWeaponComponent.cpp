@@ -12,7 +12,7 @@ ULMAWeaponComponent::ULMAWeaponComponent()
 
 void ULMAWeaponComponent::Fire()
 {
-	if (Weapon && !AnimReloading)
+	if (Weapon && !AnimReloading && !sprinted)
 	{
 		if (!GetOwner()->GetWorldTimerManager().IsTimerActive(FireRateHandle))
 		{
@@ -20,7 +20,6 @@ void ULMAWeaponComponent::Fire()
 			GetOwner()->GetWorldTimerManager().SetTimer(FireRateHandle, Weapon, &ALMABaseWeapons::Fire, FireRate, true);
 			fired = true;
 		}
-		
 	}
 }
 
@@ -106,6 +105,12 @@ bool ULMAWeaponComponent::CanReload() const
 void ULMAWeaponComponent::OnDeathOwner()
 {
 	Weapon->SetLifeSpan(5.0f);
+}
+
+void ULMAWeaponComponent::isSprinted(bool hSprint)
+{
+	sprinted = hSprint;
+	if (sprinted && fired) {StopFire();}
 }
 
 void ULMAWeaponComponent::BeginPlay()

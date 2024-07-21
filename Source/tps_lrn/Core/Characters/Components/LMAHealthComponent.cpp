@@ -25,12 +25,12 @@ bool ULMAHealthComponent::IsHealthFull() const
 	return FMath::IsNearlyEqual(Health, MaxHealth);
 }
 
-
 void ULMAHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
 	Health = MaxHealth;
+	Stamina = MaxStamina;
 	OnHealthChanged.Broadcast(Health);
 
 	AActor* OwnerComponent = GetOwner();
@@ -52,5 +52,44 @@ void ULMAHealthComponent::OnTakeAnyDamage(AActor* DamagedActor, float Damage, co
 	if (!IsLife())
 	{
 		OnDeath.Broadcast();
+	}
+}
+
+void ULMAHealthComponent::Sprinted(bool hSprint)
+{
+	if (hSprint)
+	{
+		if (GetOwner()->GetWorldTimerManager().IsTimerActive(GainStaminaTimerHandle)) { GetOwner()->GetWorldTimerManager().ClearTimer(GainStaminaTimerHandle); }
+		GetOwner()->GetWorldTimerManager().SetTimer(DrainStaminaTimerHandle, this, &ULMAHealthComponent::DrainStamina, DrainStaminaTimerRate, true);
+	}
+	else
+	{
+		GetOwner()->GetWorldTimerManager().ClearTimer(DrainStaminaTimerHandle);
+		GetOwner()->GetWorldTimerManager().SetTimer(GainStaminaTimerHandle, this, &ULMAHealthComponent::GainStamina, GainStaminaTimerRate, true);
+	}
+}
+
+void ULMAHealthComponent::GainStamina()
+{
+	if (Stamina < MaxStamina)
+	{
+		++Stamina;
+	}
+	else
+	{
+		//Stamina = MaxStamina;
+		GetOwner()->GetWorldTimerManager().ClearTimer(GainStaminaTimerHandle);
+	}
+}
+
+void ULMAHealthComponent::DrainStamina()
+{
+	if (Stamina > 0)
+	{
+		--Stamina;
+	}
+	else
+	{
+		NoStamina.Broadcast(false, 300.0f);
 	}
 }
