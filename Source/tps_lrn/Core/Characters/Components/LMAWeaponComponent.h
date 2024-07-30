@@ -24,6 +24,10 @@ public:
 	void Reload();
 	void OnDeathOwner();
 	void isSprinted(bool hSprint);
+
+	UFUNCTION(BlueprintCallable)
+	const int32& GetFullClipAmmo();
+
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
@@ -44,6 +48,9 @@ private:
 	UPROPERTY()
 	ALMABaseWeapons* Weapon = nullptr;
 
+	UPROPERTY();
+	ALMADefaultCharacter* PlayerChar;
+
 	FTimerHandle FireRateHandle;
 
 	bool AnimReloading{ false };
@@ -56,5 +63,4 @@ private:
 	void EmptyCLip();
 	void EmptyCLipReload();
 	bool CanReload() const;
-	
 };

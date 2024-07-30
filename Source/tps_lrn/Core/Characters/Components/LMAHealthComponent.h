@@ -8,6 +8,7 @@
 
 DECLARE_MULTICAST_DELEGATE(FOnDeath)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnStaminaChanged, float);
 DECLARE_MULTICAST_DELEGATE_TwoParams(SoTired, bool, float);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -43,6 +44,7 @@ public:
 
 	FOnDeath OnDeath;
 	FOnHealthChanged OnHealthChanged;
+	FOnStaminaChanged OnStaminaChanged;
 	SoTired NoStamina;
 
 protected:

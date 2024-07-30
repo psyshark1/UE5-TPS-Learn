@@ -9,8 +9,12 @@
 class USpringArmComponent;
 class UCameraComponent;
 class ULMAWeaponComponent;
+class ALMAPlayerController;
 
-DECLARE_MULTICAST_DELEGATE(OnDeathDel);
+DECLARE_MULTICAST_DELEGATE(OnDeathDlg);
+DECLARE_MULTICAST_DELEGATE(TimeOutDlg);
+DECLARE_MULTICAST_DELEGATE(OnDeathDelWidget);
+DECLARE_MULTICAST_DELEGATE_OneParam(DPlayTimer, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(Sprint, bool);
 
 UCLASS()
@@ -46,11 +50,20 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	UAnimMontage* DeathMontage;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Timer")
+	int32 PlayTime{600};
+
+	UPROPERTY()
+	float PlayTimeTimerRate{ 1.0f };
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	ULMAWeaponComponent* WeaponComponent;
 
-	//UPROPERTY()
-	UCharacterMovementComponent* CharacterMovement = GetCharacterMovement();
+	UPROPERTY()
+	UCharacterMovementComponent* CharacterMovement1 = GetCharacterMovement();
+
+	UPROPERTY()
+	ALMAPlayerController* PlayerCont = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool hasSprint{false};
@@ -58,8 +71,34 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnHealthChanged(float NewHealth);
 
-	OnDeathDel OnDeathD;
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnStaminaChanged(float NewStamina);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void GetCurrAmmo(int32 ammo);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void TimeOut();
+
+	OnDeathDlg OnDeathD;
 	Sprint HasSprint;
+	DPlayTimer DPlayTimer;
+	OnDeathDelWidget OnDeathDelWidget;
+	TimeOutDlg TimeOutD;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void HideHUD();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetPause();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayTimer(int32 PTime);
+
+	UFUNCTION(BlueprintCallable)
+	const int32& GetPlayTime() const { return PlayTime; }
+
+	FTimerHandle PlayTimerHandle;
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -81,9 +120,8 @@ private:
 	void Sprint();
 	void StopSprint();
 	void SetTired(bool hSprint, float tiredSpeed);
+	void ProcPlayTimer();
 
 	void OnDeath();
-	
-
 	void RotationPlayerOnCursor();
 };

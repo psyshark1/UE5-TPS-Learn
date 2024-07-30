@@ -10,6 +10,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TimerManager.h"
 #include "Engine/Engine.h"
+#include "Core/Controllers/LMAPlayerController.h"
 
 ALMADefaultCharacter::ALMADefaultCharacter()
 {
@@ -45,12 +46,22 @@ void ALMADefaultCharacter::BeginPlay()
 	}
 	OnHealthChanged(HealthComponent->GetHealth());
 	HealthComponent->OnDeath.AddUObject(this, &ALMADefaultCharacter::OnDeath);
+	HealthComponent->OnDeath.AddUObject(this, &ALMADefaultCharacter::HideHUD);
 	HealthComponent->OnHealthChanged.AddUObject(this, &ALMADefaultCharacter::OnHealthChanged);
+	HealthComponent->OnStaminaChanged.AddUObject(this, &ALMADefaultCharacter::OnStaminaChanged);
 	HealthComponent->NoStamina.AddUObject(this, &ALMADefaultCharacter::SetTired);
 	
 	OnDeathD.AddUObject(WeaponComponent, &ULMAWeaponComponent::OnDeathOwner);
 	HasSprint.AddUObject(HealthComponent, &ULMAHealthComponent::Sprinted);
 	HasSprint.AddUObject(WeaponComponent, &ULMAWeaponComponent::isSprinted);
+
+	DPlayTimer.AddUObject(this, &ALMADefaultCharacter::PlayTimer);
+	GetWorldTimerManager().SetTimer(PlayTimerHandle, this, &ALMADefaultCharacter::ProcPlayTimer, PlayTimeTimerRate, true);
+	TimeOutD.AddUObject(this, &ALMADefaultCharacter::TimeOut);
+
+	PlayerCont = Cast<ALMAPlayerController>(GetController());
+
+	OnDeathDelWidget.AddUObject(PlayerCont, &ALMAPlayerController::SetDeadWidget);
 }
 
 void ALMADefaultCharacter::MoveForward(float Value)
@@ -73,14 +84,14 @@ void ALMADefaultCharacter::CamZoom(float Value)
 
 void ALMADefaultCharacter::Sprint()
 {
-	if (CharacterMovement->Velocity != FVector(0.0f, 0.0f, 0.0f))
+	if (CharacterMovement1->Velocity != FVector(0.0f, 0.0f, 0.0f))
 	{
-		if (!CharacterMovement->IsFalling())
+		if (!CharacterMovement1->IsFalling())
 		{
 			if (HealthComponent->GetStamina() > 0)
 			{
 				hasSprint = true;
-				CharacterMovement->MaxWalkSpeed = 600.0f;
+				CharacterMovement1->MaxWalkSpeed = 600.0f;
 				HasSprint.Broadcast(hasSprint);
 			}
 		}
@@ -96,7 +107,21 @@ void ALMADefaultCharacter::StopSprint()
 void ALMADefaultCharacter::SetTired(bool hSprint, float tiredSpeed)
 {
 	hasSprint = hSprint;
-	CharacterMovement->MaxWalkSpeed = tiredSpeed;
+	CharacterMovement1->MaxWalkSpeed = tiredSpeed;
+}
+
+void ALMADefaultCharacter::ProcPlayTimer()
+{
+	if (PlayTime > 0)
+	{
+		--PlayTime;
+		DPlayTimer.Broadcast(GetPlayTime());
+	}
+	else
+	{
+		GetWorldTimerManager().ClearTimer(PlayTimerHandle);
+		TimeOutD.Broadcast();
+	}
 }
 
 void ALMADefaultCharacter::OnDeath()
@@ -110,6 +135,10 @@ void ALMADefaultCharacter::OnDeath()
 	SetLifeSpan(5.0f);
 
 	OnDeathD.Broadcast();
+
+	GetWorldTimerManager().ClearTimer(PlayTimerHandle);
+
+	OnDeathDelWidget.Broadcast();
 
 	if (Controller)
 	{
@@ -126,9 +155,6 @@ void ALMADefaultCharacter::RotationPlayerOnCursor()
 {
 }
 
-
-
-// Called every frame
 void ALMADefaultCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -165,4 +191,5 @@ void ALMADefaultCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, WeaponComponent, &ULMAWeaponComponent::Fire);
 	PlayerInputComponent->BindAction("Fire", IE_Released, WeaponComponent, &ULMAWeaponComponent::StopFire);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, WeaponComponent, &ULMAWeaponComponent::Reload);
+	PlayerInputComponent->BindAction("Pause", IE_Pressed, this, &ALMADefaultCharacter::SetPause);
 }

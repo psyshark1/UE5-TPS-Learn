@@ -30,8 +30,12 @@ bld/
 Binaries/
 Config/
 Content/AnimStarterPack/
-Content/Characters/
+Content/Characters/Mannequin_UE4/
 Content/FPS_Weapon_Bundle/
+Content/Characters/Mannequins/Animations/
+Content/Characters/Mannequins/Materials/
+Content/Characters/Mannequins/Rigs/
+Content/Characters/Mannequins/Textures/
 #Content/LeaveMeAlone/Core/Characters/Animations/Sequences/
 #Content/LeaveMeAlone/FPS_Weapon_Bundle/
 Content/LevelPrototyping/

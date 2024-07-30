@@ -74,6 +74,7 @@ void ULMAHealthComponent::GainStamina()
 	if (Stamina < MaxStamina)
 	{
 		++Stamina;
+		OnStaminaChanged.Broadcast(Stamina);
 	}
 	else
 	{
@@ -87,6 +88,7 @@ void ULMAHealthComponent::DrainStamina()
 	if (Stamina > 0)
 	{
 		--Stamina;
+		OnStaminaChanged.Broadcast(Stamina);
 	}
 	else
 	{

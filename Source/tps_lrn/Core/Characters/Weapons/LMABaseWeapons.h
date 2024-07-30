@@ -23,6 +23,7 @@ struct FAmmoWeapon
 };
 
 DECLARE_MULTICAST_DELEGATE(EmptyClip);
+DECLARE_MULTICAST_DELEGATE_OneParam(FCurrClipcount, int32);
 
 UCLASS()
 class TPS_LRN_API ALMABaseWeapons : public AActor
@@ -35,7 +36,9 @@ public:
 	void ChangeClip();
 	const int32& GetClipAmmoCount();
 	const int32& GetCurrentClipAmmo();
+	FCurrClipcount CurrClipCount;
 	EmptyClip EmptyClip;
+
 	virtual void Tick(float DeltaTime) override;
 protected:
 

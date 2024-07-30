@@ -3,6 +3,7 @@
 #include "Core/Animations/LMAReloadFinishedAnimNotify.h"
 #include "GameFramework/Character.h"
 #include "Core/Characters/Weapons/LMABaseWeapons.h"
+#include "Core/Characters/LMADefaultCharacter.h"
 
 
 ULMAWeaponComponent::ULMAWeaponComponent()
@@ -12,13 +13,13 @@ ULMAWeaponComponent::ULMAWeaponComponent()
 
 void ULMAWeaponComponent::Fire()
 {
+	fired = true;
 	if (Weapon && !AnimReloading && !sprinted)
 	{
 		if (!GetOwner()->GetWorldTimerManager().IsTimerActive(FireRateHandle))
 		{
 			Weapon->Fire();
 			GetOwner()->GetWorldTimerManager().SetTimer(FireRateHandle, Weapon, &ALMABaseWeapons::Fire, FireRate, true);
-			fired = true;
 		}
 	}
 }
@@ -31,12 +32,9 @@ void ULMAWeaponComponent::StopFire()
 
 void ULMAWeaponComponent::Reload()
 {
-	if (!GetOwner()->GetWorldTimerManager().IsTimerActive(FireRateHandle))
-	{
-		if (Weapon->GetCurrentClipAmmo() < Weapon->GetClipAmmoCount())
-		{
-			EmptyCLipReload();
-		}
+	if (Weapon->GetCurrentClipAmmo() < Weapon->GetClipAmmoCount())
+	{	
+		(GetOwner()->GetWorldTimerManager().IsTimerActive(FireRateHandle)) ? EmptyCLip() : EmptyCLipReload();
 	}
 }
 
@@ -45,12 +43,13 @@ void ULMAWeaponComponent::SpawnWeapon()
 	Weapon = GetWorld()->SpawnActor<ALMABaseWeapons>(WeaponClass);
 	if (Weapon)
 	{
-		const auto Character = Cast<ACharacter>(GetOwner());
-		if (Character)
+		PlayerChar = Cast<ALMADefaultCharacter>(GetOwner());
+		if (PlayerChar)
 		{
 			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, false);
-			Weapon->AttachToComponent(Character->GetMesh(), AttachmentRules, WeaponSocket);
+			Weapon->AttachToComponent(PlayerChar->GetMesh(), AttachmentRules, WeaponSocket);
 			Weapon->EmptyClip.AddUObject(this, &ULMAWeaponComponent::EmptyCLip);
+			Weapon->CurrClipCount.AddUObject(PlayerChar, &ALMADefaultCharacter::GetCurrAmmo);
 		}
 	}
 }
@@ -73,8 +72,7 @@ void ULMAWeaponComponent::InitAnimNotify()
 
 void ULMAWeaponComponent::OnNotifyReloadFinished(USkeletalMeshComponent* SkeletalMesh)
 {
-	const auto Character = Cast<ACharacter>(GetOwner());
-	if (Character->GetMesh() == SkeletalMesh)
+	if (PlayerChar->GetMesh() == SkeletalMesh)
 	{
 		AnimReloading = false;
 		Weapon->ChangeClip();
@@ -92,9 +90,7 @@ inline void ULMAWeaponComponent::EmptyCLipReload()
 {
 	if (!CanReload()) return;
 	AnimReloading = true;
-	ACharacter* Character = Cast<ACharacter>(GetOwner());
-	Character->PlayAnimMontage(ReloadMontage);
-	
+	PlayerChar->PlayAnimMontage(ReloadMontage);
 }
 
 bool ULMAWeaponComponent::CanReload() const
@@ -105,6 +101,8 @@ bool ULMAWeaponComponent::CanReload() const
 void ULMAWeaponComponent::OnDeathOwner()
 {
 	Weapon->SetLifeSpan(5.0f);
+	AnimReloading = true;
+	StopFire();
 }
 
 void ULMAWeaponComponent::isSprinted(bool hSprint)
@@ -118,6 +116,11 @@ void ULMAWeaponComponent::BeginPlay()
 	Super::BeginPlay();
 	SpawnWeapon();
 	InitAnimNotify();
+}
+
+const int32& ULMAWeaponComponent::GetFullClipAmmo()
+{
+	return Weapon->GetClipAmmoCount();
 }
 
 void ULMAWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

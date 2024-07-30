@@ -1,6 +1,5 @@
 #include "Core/Characters/Weapons/LMABaseWeapons.h"
 
-// Sets default values
 ALMABaseWeapons::ALMABaseWeapons()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -16,14 +15,15 @@ void ALMABaseWeapons::Fire()
 void ALMABaseWeapons::ChangeClip()
 {
 	CurrentAmmoWeapon.Bullets = AmmoWeapon.Bullets;
+	CurrClipCount.Broadcast(GetCurrentClipAmmo());
 }
 
-const int32& ALMABaseWeapons::GetClipAmmoCount()
+inline const int32& ALMABaseWeapons::GetClipAmmoCount()
 {
 	return AmmoWeapon.Bullets;
 }
 
-const int32& ALMABaseWeapons::GetCurrentClipAmmo()
+inline const int32& ALMABaseWeapons::GetCurrentClipAmmo()
 {
 	return CurrentAmmoWeapon.Bullets;
 }
@@ -56,16 +56,14 @@ void ALMABaseWeapons::Shoot()
 void ALMABaseWeapons::DecrementBullets()
 {
 	--CurrentAmmoWeapon.Bullets;
-	//UE_LOG(LogWeapon, Display, TEXT("Bullets = %s"), *FString::FromInt(CurrentAmmoWeapon.Bullets));
-
+	CurrClipCount.Broadcast(GetCurrentClipAmmo());
 	if (IsCurrentClipEmpty())
 	{
 		EmptyClip.Broadcast();
-		ChangeClip();
 	}
 }
 
-bool ALMABaseWeapons::IsCurrentClipEmpty() const
+inline bool ALMABaseWeapons::IsCurrentClipEmpty() const
 {
 	return CurrentAmmoWeapon.Bullets == 0;
 }
